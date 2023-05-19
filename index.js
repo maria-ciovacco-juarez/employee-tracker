@@ -46,10 +46,10 @@ function promptMenu() {
                 case "Add an employee":
                     addEmployee();
                     break;
-                // case "Update an employee role":
-                //     updateRole();
-                //     break;
-                default:
+                case "Update an employee role":
+                    updateRole();
+                    break;
+                    default:
                     complete();
             }
         });
@@ -170,7 +170,32 @@ const viewDepartments = () => {
   })
   }
 
-
+  function updateRole() {
+    inquirer.prompt([
+      {
+        type: 'text',
+        name: 'employeeId',
+        message: 'Enter the ID of the employee you want to update:',
+      },
+      {
+        type: 'text',
+        name: 'newRoleId',
+        message: 'Enter the ID of the new role:',
+      },
+    ]).then(({ employeeId, newRoleId }) => {
+      // Update the employee role in the database using the provided IDs
+      let query = `UPDATE employee SET role_id = ? WHERE id = ?`;
+  
+      db.query(query, [newRoleId, employeeId], (err, res) => {
+        if (err) throw err;
+  
+        console.log(`Successfully updated employee role with ID ${employeeId}`);
+        promptMenu();
+      });
+    });
+  }
+  
+  
 const complete = () => {
     console.log('Finished');
     process.exit();

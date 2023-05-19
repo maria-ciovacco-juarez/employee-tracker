@@ -15,6 +15,23 @@ const db = mysql.createConnection(
   console.log(`Connected to the employees_db database.`)
 );
 
+const readline = require('readline');
+// ...
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+// Increase the limit of listeners for the ReadStream object
+rl.input.setMaxListeners(20); // Set the number according to your needs
+
+// Rest of your code using `inquirer` prompts
+
+// ...
+
+
+
 const init = () => {
   inquirer
     .prompt([
@@ -186,78 +203,55 @@ function addEmployee() {
 }
 
 
-const updateEmployee = () => {
-  const employeeChoices = () =>
-    db.promise()
-      .query("SELECT * FROM employees")
-      .then(([rows]) => rows.map(employee => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.id })));
-
-  const roleChoices = () =>
-    db.promise()
-      .query("SELECT * FROM roles")
-      .then(([rows]) => rows.map(role => ({ name: role.title, value: role.id })));
-
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        message: "Select the employee you want to update:",
-        name: "employeeId",
-        choices: employeeChoices
-      },
-      {
-        type: "list",
-        message: "Select the information you want to update:",
-        name: "updateField",
-        choices: ["First Name", "Last Name", "Role", "Manager"]
-      },
-      {
-        type: "input",
-        message: "Enter the new value:",
-        name: "newValue",
-        validate: input => (input ? true : "Please enter a value.")
-      }
-    ])
-    .then(ans => {
-      let columnName;
-      let columnValue;
-
-      switch (ans.updateField) {
-        case "First Name":
-          columnName = "first_name";
-          columnValue = ans.newValue;
-          break;
-        case "Last Name":
-          columnName = "last_name";
-          columnValue = ans.newValue;
-          break;
-        case "Role":
-          columnName = "role_id";
-          columnValue = ans.newValue;
-          break;
-        case "Manager":
-          columnName = "manager_id";
-          columnValue = ans.newValue;
-          break;
-        default:
-          columnName = "";
-          columnValue = "";
-      }
-
-      if (columnName !== "") {
-        db.promise()
-          .query(`UPDATE employees SET ${columnName} = ? WHERE id = ?`, [columnValue, ans.employeeId])
-          .then(() => {
-            console.log("Employee information updated successfully!");
-            init();
-          })
-          .catch(err => {
-            console.log(err);
-            init();
-          });
-      } else {
-        console.log("Invalid update field!");
-        init();
-      }
+function updateEmployee() {
+  db.query(
+    "SELECT * FROM employee",
+    function (err, res) {
+      if (err) throw err;
+      const roles = res;
+      console.table(roles);
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            message: "Enter employee's ID:",
+            name: "employee_id"
+          },
+          {
+            type: "list",
+            message: "Choose new employee role:",
+            choices: function () {
+              const choiceArray = [];
+              for (let i = 0; i < roles.length; i++) {
+                choiceArray.push(`${roles[i].id} ${roles[i].title}`);
+              }
+              return choiceArray;
+            },
+            name: "chosenRole"
+          }
+        ])
+        .then(function ({ employee_id, chosenRole }) {
+          console.log("Updating employee role...\n");
+          db.query(
+            "UPDATE employee SET ? WHERE ?",
+            [
+              {
+                role_id: chosenRole.split(" ")[0]
+              },
+              {
+                id: employee_id
+              }
+            ],
+            function (err, res) {
+              if (err) throw err;
+              console.log(`Employee ${employee_id}'s role has been updated to ${chosenRole}\n`);
+              viewEmployees();
+              init();
+            }
+          );
+        });
     });
-};
+}
+
+
+

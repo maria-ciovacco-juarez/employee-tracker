@@ -85,14 +85,14 @@ const viewDept = () => {
 };
 
 const viewRoles = () => {
-  db.query(`SELECT * FROM role`, (err, results) => {
+  db.query(`SELECT * FROM roles`, (err, results) => {
     err ? console.error(err) : console.table(results);
     init();
   })
 };
 
 const viewEmployees = () => {
-  db.query(`SELECT * FROM employee`, (err, results) => {
+  db.query(`SELECT * FROM employees`, (err, results) => {
     err ? console.error(err) : console.table(results);
     init();
   })
@@ -107,8 +107,9 @@ const addDept = () => {
         name: "addDept"
       }
     ]).then(ans => {
-      db.query(`INSERT INTO department(name)
-                    VALUES(?)`, ans.addDept, (err, results) => {
+      db.query
+      (`INSERT INTO department(name)
+                   VALUES(?)`, ans.addDept, (err, results) => {
         if (err) {
           console.log(err)
         } else {
@@ -123,11 +124,13 @@ const addDept = () => {
 };
 
 const addRole = () => {
-  const deptChoices = () => db.promise().query(`SELECT * FROM department`)
-    .then((rows) => {
-      let arrNames = rows[0].map(obj => obj.name);
-      return arrNames
-    })
+  const deptChoices = () =>
+    db.promise().query
+      (`SELECT * FROM department`)
+      .then((rows) => {
+        let arrNames = rows[0].map(obj => obj.name);
+        return arrNames
+      })
   inquirer
     .prompt([
       {
@@ -147,14 +150,16 @@ const addRole = () => {
         choices: deptChoices
       }
     ]).then(ans => {
-      db.promise().query(`SELECT id FROM department WHERE name = ?`, ans.addDept)
+      db.promise().query
+        (`SELECT id FROM department WHERE name = ?`, ans.addDept)
         .then(answer => {
           let mappedId = answer[0].map(obj => obj.id);
           // console.log(mappedId[0])
           return mappedId[0]
         })
         .then((mappedId) => {
-          db.promise().query(`INSERT INTO roles(title, salary, department_id)
+          db.promise().query
+            (`INSERT INTO roles(title, salary, department_id)
                 VALUES(?, ?, ?)`, [ans.roleTitle, ans.roleSalary, mappedId]);
           init()
         })
@@ -186,26 +191,35 @@ function addEmployee() {
       }
     ])
     .then(function ({ first_name, last_name, role_id, manager_id }) {
-      db.query("INSERT INTO employee SET ?",
-        {
-          first_name: first_name,
-          last_name: last_name,
-          role_id: role_id,
-          manager_id: manager_id
-        },
-        function (err, res) {
-          if (err) throw err;
-          console.log(`Successfully added ${first_name} ${last_name} into employee table!`)
-          viewEmployees();
-          init();
-        })
+      db.query
+        ("INSERT INTO employees SET ?",
+          {
+            first_name: first_name,
+            last_name: last_name,
+            role_id: role_id,
+            manager_id: manager_id
+          },
+          function (err, res) {
+            if (err) throw err;
+            console.log(`Successfully added ${first_name} ${last_name} into employee table!`)
+            viewEmployees();
+            init();
+          })
     })
 }
 
 
 function updateEmployee() {
+  const roles = [
+    { id: 1, title: "Senior Engineer" },
+    { id: 2, title: "Junior Engineer" },
+    { id: 3, title: "Tech Recruiter" },
+    { id: 4, title: "Data Analyst" },
+    { id: 5, title: "Executive Team Lead" },
+    { id: 6, title: "Engineer Manager" },
+  ]
   db.query(
-    "SELECT * FROM employee",
+    "SELECT * FROM employees",
     function (err, res) {
       if (err) throw err;
       const roles = res;
@@ -220,35 +234,30 @@ function updateEmployee() {
           {
             type: "list",
             message: "Choose new employee role:",
-            choices: function () {
-              const choiceArray = [];
-              for (let i = 0; i < roles.length; i++) {
-                choiceArray.push(`${roles[i].id} ${roles[i].title}`);
-              }
-              return choiceArray;
-            },
-            name: "chosenRole"
+            choices: roles.map((role) => `${role.id} ${role.title}`),
+            name: "chosenRole",
           }
         ])
         .then(function ({ employee_id, chosenRole }) {
           console.log("Updating employee role...\n");
-          db.query(
-            "UPDATE employee SET ? WHERE ?",
-            [
-              {
-                role_id: chosenRole.split(" ")[0]
-              },
-              {
-                id: employee_id
+          db.query
+            (
+              "UPDATE employee SET ? WHERE ?",
+              [
+                {
+                  role_id: chosenRole.split(" ")[0]
+                },
+                {
+                  id: employee_id
+                }
+              ],
+              function (err, res) {
+                if (err) throw err;
+                console.log(`Employee ${employee_id}'s role has been updated to ${chosenRole}\n`);
+                viewEmployees();
+                init();
               }
-            ],
-            function (err, res) {
-              if (err) throw err;
-              console.log(`Employee ${employee_id}'s role has been updated to ${chosenRole}\n`);
-              viewEmployees();
-              init();
-            }
-          );
+            );
         });
     });
 }

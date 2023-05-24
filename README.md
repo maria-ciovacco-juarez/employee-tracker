@@ -48,8 +48,9 @@ challenge 12
  
   ## Credits
 
-	- Module 10 Challenge 
-  - Module 12 activities
+-- Module 10 Challenge 
+
+ -- Module 12 activities
 
 
   

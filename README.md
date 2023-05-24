@@ -36,7 +36,13 @@ challenge 12
    Type `node index.js` to run the prompts.
 
    Feel free to follow the walkthrough video:
+   
+   
+   https://youtu.be/0uMLMkV6q9o
+   
+   
 
+<img width="1445" alt="Screen Shot 2023-05-23 at 10 41 19 PM" src="https://github.com/maria-ciovacco-juarez/employee-tracker/assets/119270869/499857dd-5fbf-41af-85d1-571f77d1002e">
 
 
  
